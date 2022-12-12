@@ -1,0 +1,5 @@
+filebeat.inputs:
+- type: stdin
+
+output.console:
+  pretty: true
