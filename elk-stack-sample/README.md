@@ -14,5 +14,5 @@ The main idea is to configure Elasticsearch, Logstash with Filebeat and Kibana t
 * Put a real application publishing logs and see the e2e process :x:
 
 ## IN A NEAR FUTURE
-* Secure communication between Filebeat and Elastic using certs :x: 
+* Secure communication between Filebeat and Elastic using self-signed certs :x: 
 > seems a very complex topic because you have to generate the certs manually using an elastic tool. Because at this moment we are using basic auth with https maybe we can skip this.
