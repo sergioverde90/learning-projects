@@ -8,10 +8,10 @@ The main idea is to configure Elasticsearch, Logstash with Filebeat and Kibana t
 
 * Filebeat up & running :white_check_mark:
 * Pusblish some logs directly from Filebeat to ElasticSearch :white_check_mark:
-* Use Kibana to see the generated logs :x:
-* Review the ES indexes creted in the process :x:
-* Add Logstash in the middle for log processing :x:
-* Put a real application publishing logs and see the e2e process :x:
+* Added support for Logstash
+* Review the ES indexes creted in the process :white_check_mark:
+* Add Logstash in the middle for log processing :white_check_mark:
+* Put a real application publishing logs and see the e2e process :white_check_mark:
 
 ## IN A NEAR FUTURE
 * Secure communication between Filebeat and Elastic using self-signed certs :x: 
