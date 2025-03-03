@@ -4,7 +4,7 @@ public class MergeSort {
     private static final String ANSI_RESET = "\u001B[0m";
     
     public static void main(String[] args) {
-        int[] arr = {8,7,6,5,4,3,2,1};
+        int[] arr = {12, 56, 34, 2,  45, 6 , 8, 98};
         System.out.println("============ DIVIDE ===============\n");
         
         mergesort(arr, 0, arr.length - 1);
@@ -26,15 +26,16 @@ public class MergeSort {
         // conquer
         System.out.println(ANSI_RED);
         System.out.printf("============ CONQUER from %d to %d ===============%n" + ANSI_RED, from, to);
-        merge(arr, from, to, mid);
+        merge(arr, from, to);
         System.out.printf("============ FINISHED CONQUER from %d to %d ===============%n", from, to);
         System.out.println(ANSI_RESET);
     }
 
-    private static void merge(int[] arr, int from, int to, int mid) {
+    private static void merge(int[] arr, int from, int to) {
         // split arr into to piles
-        final int[] left = Arrays.copyOfRange(arr, from, mid + 1);
-        final int[] right = Arrays.copyOfRange(arr, mid + 1, to + 1);
+        final double mid = Math.floor((from + (double) to) / 2);
+        final int[] left = Arrays.copyOfRange(arr, from, (int) mid + 1);
+        final int[] right = Arrays.copyOfRange(arr, ((int) mid) + 1, to + 1);
         System.out.println("L=" + Arrays.stream(left).boxed().toList() + ", R=" + Arrays.stream(right).boxed().toList());
 
         int[] merged = new int[left.length + right.length];
@@ -59,7 +60,7 @@ public class MergeSort {
             }
         } else {
             while (j < right.length) {
-                merged[k] = left[j];
+                merged[k] = right[j];
                 k++;
                 j++;
             }
