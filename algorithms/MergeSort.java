@@ -12,14 +12,14 @@ public class MergeSort {
         
         // divide
         int mid = (from + to) / 2;
-        mergesort(arr, from, mid);            // T(n) = T(n/2)
+        mergesort(arr, from, mid);      // T(n) = T(n/2)
         mergesort(arr, mid + 1, to);    // T(n) = T(n/2)  
         
         // conquer
-        merge(arr, from, to);                 // Θ(n) -> c*n
+        merge(arr, from, to);           // Θ(n) -> c*n
         
         // So, ignoring constants: 
-        //      2T(n/2) + Θ(n) => Θ(n log(n))
+        //   T(n) = 2T(n/2) + Θ(n) => Θ(n log(n))
     }
 
     private static void merge(int[] arr, int from, int to) {
