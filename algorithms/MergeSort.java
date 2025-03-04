@@ -30,7 +30,7 @@ public class MergeSort {
         // two pointer approach
         int i = 0, j = 0, k = from;
         while (i < left.length && j < right.length) {
-            if (left[i] < right[j]) { // []
+            if (left[i] < right[j]) {
                 arr[k] = left[i];
                 i++;
             } else {
