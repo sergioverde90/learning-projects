@@ -113,7 +113,6 @@ public class PassHash {
             byte[] decryptedData = CIPHER.doFinal(cypherText);
 
             // Copy result to the clipboard
-            System.out.println();
             Toolkit toolkit = Toolkit.getDefaultToolkit();
             Clipboard clipboard = toolkit.getSystemClipboard();
             StringSelection selection = new StringSelection(new String(decryptedData));
