@@ -50,7 +50,7 @@ public class PassHash {
         }
 
         if (args[0].equals("retrieve")) {
-            final String mapKey = promptMessage("Enter the code: ");
+            final String mapKey = args.length == 2 ? args[1] : promptMessage("Enter the code: ");
             final String pass = promptPassword("Enter password: ");
             retrieve(keystore, mapKey, pass);
         } else if (args[0].equals("generate")) {
