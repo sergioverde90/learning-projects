@@ -6,7 +6,7 @@
 
 # TIPS & TRICKS
 
-* Lets suppose that you lost communication between your main traces source and logstash for some reason. Usually, we have to check two things: the source that provide the traces is actually sending working and also that logstash is well configured and ready to ingest data. For the former, we can create a tcpdump listening the port that is supposed to receive the data.
+* Lets suppose that you loose communication between your main traces source and logstash for some reason. Usually, we have to check two things: that the source that send traces is actually doing it and that logstash is ready to ingest data as well. For the former, we can create a tcpdump listening the port that is supposed to receive the data.
 
 ```bash
 sudo tcpdump -i any -n tcp dst port 4560
@@ -16,4 +16,13 @@ For the later, we can send some input directly over the socker waiting to ingest
 
 ```bash
 nc localhost 4560 <  tmp.json
+```
+
+* Suppose you assume you have a running service in a given port that is working fine (let say s1), but when a second service (s2) tries to connect to s1 it fails saying connection refussed or something similar. To try out your assumption and verify that the s1 service is running in the expected port you can use `netcat`:
+
+```bash
+nc -zv <hostname_or_ip_address> <port_number>
+
+-z: Specifies that nc should just scan for listening daemons, without sending any data to them.
+-v: Provides verbose output, showing more details about the connection attempt.
 ```
