@@ -1,0 +1,98 @@
+<html>
+    <body style="text-align:center;">
+        <canvas id="myCanvas" width="1000" height="1000" ></canvas>
+    </body>
+    <script type="text/javascript">
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+
+        draw(()=> {
+            // CENTERED CROSS
+            drawLine(c.width/2, 0, c.width/2, c.width, "gray", 1);
+            drawLine(0, c.width/2, c.width, c.width/2, "gray", 1);
+
+            // LINE EQUATION
+            // m = y - y_0 / x - x_0 ; assuming y-intercepts b at (0,b) => y = mx + b
+            ctx.fillStyle='red';
+            const slope = 1;
+            const b = 0;
+            for (x=-c.width; x<c.width;x+=0.1) {
+                y = slope*x + b;
+                ctx.fillRect(x, y, 1, 1);
+            }
+
+            // USING POLAR COORDINATES (radius + angle)
+            // draw a circle using polar coordinates and using parametric trig equations
+            ctx.fillStyle='green';
+            var min_spread = 100;
+            var max_spread = 200;
+            for (i=0; i < Math.PI * 2; i+=0.01) {
+                var r = random(min_spread, max_spread);
+                var x = r * Math.cos(i) + c.width/2;
+                var y = r * Math.sin(i) + c.width/2;
+                ctx.fillRect(x, y, 1, 1);
+            }
+
+            // USING POLAR COORDINATES (radius + angle)
+            // draw a circle using polar coordinates and using parametric trig equations
+            var lastPointX = c.width/2;
+            var lastPointY = c.width/2;
+            for (i=0; i < Math.PI * 2; i+=0.06) {
+                var r = random(80, 100);
+                var x = r * Math.cos(i) + c.width/2;
+                var y = r * Math.sin(i) + c.width/2;
+                drawLine(lastPointX, lastPointY, x, y, "orange", 1);
+                lastPointX = x;
+                lastPointY = y;
+            }
+
+            // UNIT CIRCLE
+            // draw a circle using the unit circle approach:
+            //  * y =±sqrt(radius - x^2)
+            //  * x =±sqrt(radius - y^2)
+            var radio = 100000;
+            for (i=0; i < radio; i+=1) {
+                var y_1 = Math.sqrt(radio - i*i);
+                var y_2 = -y_1;
+
+                var x_1 = Math.sqrt(radio - y_1*y_1);
+                var x_2 = -x_1;
+
+                point(c.width/2 - x_1, c.width/2 - y_1);
+                point(c.width/2 - x_1, c.width/2 - y_2);
+                point(c.width/2 - x_2, c.width/2 - y_1);
+                point(c.width/2 - x_2, c.width/2 - y_2);
+            }
+
+        })
+
+        function drawLine(x1, y1, x2,y2, stroke = 'black', width = 3) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = stroke;
+            ctx.lineWidth = width;
+            ctx.stroke();
+        }
+
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        function draw(fn) {
+            setInterval(() => {
+                ctx.clearRect(0, 0, c.width, c.height);
+                fn();
+            }, 80);
+        }
+
+        function point(x, y, color = 'blue'){
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.strokeStyle = color;
+            ctx.lineTo(x+1, y+1);
+            ctx.stroke();
+          }
+
+    </script>
+</html>
