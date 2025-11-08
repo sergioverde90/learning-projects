@@ -1,5 +1,51 @@
 let allBookmarks = [];
 
+// Theme handling
+function initializeTheme() {
+  // Check if theme is stored in chrome.storage
+  chrome.storage.sync.get(['theme'], function(result) {
+    if (result.theme) {
+      document.documentElement.setAttribute('data-theme', result.theme);
+    } else {
+      // Check system preference
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        chrome.storage.sync.set({ theme: 'dark' });
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        chrome.storage.sync.set({ theme: 'light' });
+      }
+    }
+  });
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  
+  document.documentElement.setAttribute('data-theme', newTheme);
+  chrome.storage.sync.set({ theme: newTheme });
+}
+
+// Initialize theme and set up listeners
+document.addEventListener('DOMContentLoaded', () => {
+  initializeTheme();
+  
+  // Theme toggle button listener
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+  
+  // Listen for system theme changes
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!chrome.storage.sync.get(['theme'])) {  // Only auto-switch if user hasn't manually set a theme
+        const newTheme = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        chrome.storage.sync.set({ theme: newTheme });
+      }
+    });
+  }
+});
+
 // Get all bookmarks on load
 chrome.bookmarks.getTree((bookmarkTreeNodes) => {
   allBookmarks = [];

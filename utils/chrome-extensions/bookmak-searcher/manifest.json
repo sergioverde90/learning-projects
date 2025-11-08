@@ -4,7 +4,8 @@
   "version": "1.0",
   "description": "Quickly search and find your bookmarks by name",
   "permissions": [
-    "bookmarks"
+    "bookmarks",
+    "storage"
   ],
   "action": {
     "default_popup": "popup.html"
