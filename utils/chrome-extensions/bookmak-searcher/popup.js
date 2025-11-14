@@ -96,7 +96,7 @@ function displayBookmarks(bookmarks) {
     const highlightedTitle = highlightText(bookmark.title, searchQuery);
     
     return `
-      <div class="bookmark-item" data-url="${bookmark.url}">
+      <div class="bookmark-item" data-url="${bookmark.url}" tabindex="0" role="button">
         <img src="${favicon}" class="bookmark-icon" onerror="this.style.display='none'">
         <div class="bookmark-info">
           <div class="bookmark-title">${highlightedTitle}</div>
@@ -111,6 +111,32 @@ function displayBookmarks(bookmarks) {
     item.addEventListener('click', () => {
       const url = item.getAttribute('data-url');
       chrome.tabs.create({ url });
+    });
+    
+    // Keyboard navigation for each item
+    item.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        // Open the bookmark
+        item.click();
+      } else if (e.key === 'ArrowDown') {
+        // Move focus to the next bookmark item if available
+        const next = item.nextElementSibling;
+        if (next && next.classList && next.classList.contains('bookmark-item')) {
+          next.focus();
+        }
+        e.preventDefault();
+      } else if (e.key === 'ArrowUp') {
+        // Move focus to previous bookmark or back to search input
+        const prev = item.previousElementSibling;
+        if (prev && prev.classList && prev.classList.contains('bookmark-item')) {
+          prev.focus();
+        } else {
+          // If no previous item, move focus back to the search input
+          const search = document.getElementById('searchInput');
+          if (search) search.focus();
+        }
+        e.preventDefault();
+      }
     });
   });
 }
@@ -138,6 +164,20 @@ document.getElementById('searchInput').addEventListener('keydown', (e) => {
     const firstItem = document.querySelector('.bookmark-item');
     if (firstItem) {
       firstItem.click();
+    }
+  } else if (e.key === 'ArrowDown') {
+    // Move focus to the first result
+    const firstItem = document.querySelector('.bookmark-item');
+    if (firstItem) {
+      firstItem.focus();
+      e.preventDefault();
+    }
+  } else if (e.key === 'ArrowUp') {
+    // Move focus to the last result
+    const items = document.querySelectorAll('.bookmark-item');
+    if (items.length) {
+      items[items.length - 1].focus();
+      e.preventDefault();
     }
   }
 });
