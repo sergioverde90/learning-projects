@@ -73,3 +73,7 @@ defaults write -g InitialKeyRepeat -int 12
 defaults write -g KeyRepeat -int 1.5
 
 echo "Setup complete! Please restart your terminal to apply all changes."
+
+# Download your favorite JVM distribution and add it to sdkman
+# 
+# sdk install java zulu-25.jdk /usr/local/zulu-25.jdk/Contents/Home
