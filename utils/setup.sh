@@ -67,6 +67,22 @@ else
     echo "Go already installed"
 fi
 
+# Install direnv if not installed
+if ! command -v direnv &> /dev/null; then
+    echo "Installing direnv..."
+    brew install direnv
+else
+    echo "Direnv already installed"
+fi
+
+# set up direnv in zshrc if not already set
+if ! grep -q 'eval "$(direnv hook zsh)"' "$HOME/.zshrc"; then
+    echo 'eval "$(direnv hook zsh)"' >> "$HOME/.zshrc"
+    echo "Added direnv hook to .zshrc"
+else
+    echo "Direnv hook already present in .zshrc"
+fi
+
 # Configure keyboard settings
 echo "Configuring keyboard settings..."
 defaults write -g InitialKeyRepeat -int 12
