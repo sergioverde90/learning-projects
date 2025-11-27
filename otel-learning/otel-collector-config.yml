@@ -16,6 +16,12 @@ exporters:
     endpoint: "http://prometheus:9090/api/v1/otlp"
     tls:
       insecure: true
+  elasticsearch:
+    endpoint: "http://es:9200"
+    tls:
+      insecure: true
+    mapping:
+      mode: "ecs"
 
 processors:
   batch:
@@ -25,12 +31,12 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp, debug]
+      exporters: [elasticsearch, otlp, debug]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlphttp/prometheus, debug]
+      exporters: [elasticsearch, otlphttp/prometheus, debug]
     logs:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ debug ]
+      exporters: [ elasticsearch, debug ]
