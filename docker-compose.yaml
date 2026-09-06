@@ -2,7 +2,6 @@ services:
 
   jaeger:
     container_name: jaeger
-    profiles: ["observability"]
     image: ${JAEGERTRACING_IMAGE}
     networks:
       - docker-network
@@ -18,25 +17,8 @@ services:
     environment:
       - METRICS_STORAGE_TYPE=prometheus
 
-  otelcol:
-    container_name: otelcol
-    profiles: ["observability"]
-    image: ${COLLECTOR_CONTRIB_IMAGE}
-    restart: unless-stopped
-    networks:
-      - docker-network
-    command: ["--config=/etc/otel-collector-config.yml", ""]
-    volumes:
-      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
-    ports:
-      - "4317:4317"   # OTLP gRPC receiver
-      - "4318:4318"
-    depends_on:
-      - jaeger
-
   prometheus:
     container_name: prometheus
-    profiles: ["observability"]
     image: ${PROMETHEUS_IMAGE}
     networks:
       - docker-network
@@ -55,63 +37,6 @@ services:
     restart: unless-stopped
     ports:
       - "${PROMETHEUS_SERVICE_PORT}:${PROMETHEUS_SERVICE_PORT}"
-
-  es:
-    container_name: es
-    profiles: ["elasticsearch"]
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}
-    environment:
-      - node.name=es
-      - cluster.name=docker-cluster
-      - cluster.initial_master_nodes=es,es2
-      - discovery.seed_hosts=es2
-      - ingest.geoip.downloader.enabled=false
-      - action.destructive_requires_name=false
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-    ports:
-      - "9200:9200"
-    networks:
-      - docker-network
-
-  es2:
-    container_name: es2
-    profiles: ["elasticsearch"]
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}
-    environment:
-      - node.name=es2
-      - cluster.name=docker-cluster
-      - cluster.initial_master_nodes=es,es2
-      - discovery.seed_hosts=es
-      - ingest.geoip.downloader.enabled=false
-      - action.destructive_requires_name=false
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-    ports:
-      - "9201:9200"
-    networks:
-      - docker-network
-
-  kibana:
-    container_name: kibana
-    profiles: ["elasticsearch"]
-    image: docker.elastic.co/kibana/kibana:${KIBANA_VERSION}
-    ports:
-      - "5601:5601"
-    environment:
-      - xpack.security.enabled=false
-      - xpack.security.http.ssl.enabled=false
-      - xpack.security.transport.ssl.enabled=false
-      - xpack.security.authc.http.enabled=false
-      - xpack.security.authc.http.autoSchemesEnabled=false
-      - xpack.security.authc.selector.enabled=false
-      - elasticsearc.ssl.verificationMode=none
-      - elasticsearc.ssl.alwaysPresentCertificate=false
-      - elasticsearch.hosts=['http://es:9200']
-    networks:
-      - docker-network
-    depends_on:
-      - es
 
 networks:
   docker-network:
