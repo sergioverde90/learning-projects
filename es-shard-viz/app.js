@@ -1,36 +1,74 @@
 "use strict";
-// Fetch helpers ---------------------------------------------------------------
-// Credentials: optional basic-auth user/pass from the toolbar, persisted to
-// localStorage for convenience. Sent to the same-origin proxy, which forwards
-// them to Elasticsearch. Empty user = no Authorization header.
-function authHeader() {
-  const user = document.getElementById("esUser").value.trim();
-  if (!user) return {};
-  const pass = document.getElementById("esPass").value;
-  return { "Authorization": "Basic " + btoa(`${user}:${pass}`) };
+// Connection + credentials ------------------------------------------------------
+// ES URL: optional override sent as X-ES-URL (proxy validates + forwards).
+// Auth modes: none | basic (user/pass) | apikey. Persisted to localStorage
+// for convenience; sent to the same-origin proxy, which forwards to ES.
+function proxyHeaders() {
+  const h = {};
+  const url = document.getElementById("esUrl").value.trim().replace(/\/+$/, "");
+  if (url) h["X-ES-URL"] = url;
+  const mode = document.getElementById("authMode").value;
+  if (mode === "basic") {
+    const user = document.getElementById("esUser").value.trim();
+    if (user) h["Authorization"] = "Basic " + btoa(`${user}:${document.getElementById("esPass").value}`);
+  } else if (mode === "apikey") {
+    const key = document.getElementById("esApiKey").value.trim();
+    if (key) h["Authorization"] = "ApiKey " + key;
+  }
+  return h;
 }
 
-function restoreAuth() {
+function restoreConn() {
   try {
-    const saved = JSON.parse(localStorage.getItem("esAuth") || "{}");
+    const saved = JSON.parse(localStorage.getItem("esConn") || "{}");
+    if (saved.url) document.getElementById("esUrl").value = saved.url;
+    if (saved.mode) document.getElementById("authMode").value = saved.mode;
     if (saved.user) document.getElementById("esUser").value = saved.user;
     if (saved.pass) document.getElementById("esPass").value = saved.pass;
+    if (saved.apiKey) document.getElementById("esApiKey").value = saved.apiKey;
   } catch { /* corrupted storage: ignore */ }
+  syncAuthFields();
 }
 
-function persistAuth() {
+function persistConn() {
   try {
-    localStorage.setItem("esAuth", JSON.stringify({
+    localStorage.setItem("esConn", JSON.stringify({
+      url: document.getElementById("esUrl").value,
+      mode: document.getElementById("authMode").value,
       user: document.getElementById("esUser").value,
       pass: document.getElementById("esPass").value,
+      apiKey: document.getElementById("esApiKey").value,
     }));
   } catch { /* private mode etc: ignore */ }
 }
 
+// Migrate credentials saved by the pre-auth-mode version of the UI.
+function migrateLegacyAuth() {
+  try {
+    if (localStorage.getItem("esConn")) return;
+    const legacy = JSON.parse(localStorage.getItem("esAuth") || "null");
+    if (legacy && (legacy.user || legacy.pass)) {
+      document.getElementById("authMode").value = "basic";
+      document.getElementById("esUser").value = legacy.user || "";
+      document.getElementById("esPass").value = legacy.pass || "";
+      persistConn();
+    }
+    localStorage.removeItem("esAuth");
+  } catch { /* ignore */ }
+}
+
+function syncAuthFields() {
+  const basic = document.getElementById("authMode").value === "basic";
+  const key = document.getElementById("authMode").value === "apikey";
+  document.getElementById("basicFields").hidden = !basic;
+  document.getElementById("basicPassLabel").hidden = !basic;
+  document.getElementById("apiKeyLabel").hidden = !key;
+}
+
 async function es(path) {
-  const r = await fetch("/api/es/" + path, { headers: authHeader() });
+  const r = await fetch("/api/es/" + path, { headers: proxyHeaders() });
   if (r.status === 401) {
-    throw new Error(`${path} -> HTTP 401 Unauthorized: ES needs basic auth — fill in ES user/Pass above (or set ES_USER/ES_PASSWORD for the proxy). Body: ${await r.text()}`);
+    throw new Error(`${path} -> HTTP 401 Unauthorized: ES needs credentials — pick basic/API key above (or set ES_USER/ES_PASSWORD env for the proxy). Body: ${await r.text()}`);
   }
   if (!r.ok) throw new Error(`${path} -> HTTP ${r.status}: ${await r.text()}`);
   return r.json();
@@ -269,11 +307,17 @@ el("hideSystem").addEventListener("change", load);
 el("onlyAssigned").addEventListener("change", load);
 el("redAt").addEventListener("input", () => load());
 el("filter").addEventListener("input", () => load());
-el("esUser").addEventListener("input", persistAuth);
-el("esPass").addEventListener("input", persistAuth);
+el("esUrl").addEventListener("input", persistConn);
+el("esUrl").addEventListener("change", load);
+el("authMode").addEventListener("change", () => { persistConn(); syncAuthFields(); load(); });
+el("esUser").addEventListener("input", persistConn);
+el("esPass").addEventListener("input", persistConn);
+el("esApiKey").addEventListener("input", persistConn);
 el("esUser").addEventListener("change", load);
 el("esPass").addEventListener("change", load);
+el("esApiKey").addEventListener("change", load);
 
-restoreAuth();
+migrateLegacyAuth();
+restoreConn();
 armRefresh();
 load();

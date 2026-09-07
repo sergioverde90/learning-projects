@@ -1,13 +1,16 @@
 // Creates imbalanced demo indices so the visualizer shows a loaded vs idle node.
 // Usage: npm run seed  (optional: ES_URL=http://localhost:9200 node seed.mjs --clean)
-// Auth (if the cluster has security enabled): ES_USER / ES_PASSWORD env vars.
+// Auth (if the cluster has security enabled): ES_API_KEY (takes precedence)
+// or ES_USER / ES_PASSWORD env vars.
 // Zero dependencies, Node >= 18 (global fetch).
 const ES_URL = (process.env.ES_URL || "http://localhost:9200").replace(/\/$/, "");
 const CLEAN_ONLY = process.argv.includes("--clean");
 
-const AUTH = process.env.ES_USER
-  ? { "Authorization": "Basic " + Buffer.from(`${process.env.ES_USER}:${process.env.ES_PASSWORD || ""}`).toString("base64") }
-  : {};
+const AUTH = process.env.ES_API_KEY
+  ? { "Authorization": "ApiKey " + process.env.ES_API_KEY.trim() }
+  : process.env.ES_USER
+    ? { "Authorization": "Basic " + Buffer.from(`${process.env.ES_USER}:${process.env.ES_PASSWORD || ""}`).toString("base64") }
+    : {};
 
 const BIG = "viz-big";       // 4 primaries, bulky docs, pinned to `es`
 const MEDIUM = "viz-medium"; // 2 primaries, medium docs, free allocation

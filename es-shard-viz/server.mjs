@@ -5,9 +5,13 @@
 //
 // Basic auth (for clusters with security enabled), two ways:
 //   1. Server-side: ES_USER / ES_PASSWORD env vars (used for every request).
-//   2. Per-request: UI sends `Authorization: Basic ...`, the proxy forwards it.
-//      Per-request takes precedence over env vars. Credentials are forwarded
-//      but never logged.
+//   2. Per-request: UI sends `Authorization: ...`, the proxy forwards it
+//      (Basic or ApiKey). Per-request takes precedence over env vars.
+//      Credentials are forwarded but never logged.
+//
+// ES URL override: UI may send `X-ES-URL: http(s)://host:port` to query a
+// cluster other than ES_URL (e.g. es2 on :9201). Only bare http(s) origins
+// are accepted; anything else is rejected with 400.
 import http from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -51,7 +55,17 @@ async function serveStatic(req, res) {
 async function proxyEs(req, res) {
   const u = new URL(req.url, "http://x");
   const esPath = u.pathname.replace(/^\/api\/es\/?/, "");
-  const target = `${ES_URL}/${esPath}${u.search}`;
+  let base = ES_URL;
+  const override = (req.headers["x-es-url"] || "").trim().replace(/\/+$/, "");
+  if (override) {
+    if (!/^https?:\/\/[A-Za-z0-9.-]+(:\d+)?$/.test(override)) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "invalid X-ES-URL override (expect http(s)://host[:port])" }));
+      return;
+    }
+    base = override;
+  }
+  const target = `${base}/${esPath}${u.search}`;
   try {
     const headers = { "Content-Type": "application/json" };
     const incomingAuth = req.headers["authorization"];
@@ -75,7 +89,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(204, {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-ES-URL",
     });
     res.end();
     return;
