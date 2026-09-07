@@ -1,0 +1,13 @@
+{
+  "name": "es-shard-viz",
+  "version": "1.0.0",
+  "description": "Elasticsearch per-node shard balance visualization (zero dependencies)",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "seed": "node seed.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

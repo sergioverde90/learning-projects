@@ -11,10 +11,30 @@ services:
       - action.destructive_requires_name=false
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      # --- HOTSPOTTING TRAINING: tiny disk simulation ---
+      # threshold_enabled + low/high/flood_stage with absolute byte values
+      # makes ES think disk is full very quickly (~1GB total).
+      # check interval 1s for fast feedback while training
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=700mb
+      - cluster.routing.allocation.disk.watermark.high=500mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=300mb
+      - cluster.routing.allocation.disk.watermark.flood_stage.frozen=300mb
+      - cluster.info.update.interval=1s
     ports:
       - "9200:9200"
     networks:
       - docker-network
+    # tmpfs caps the filesystem ES sees to 1G -> real small disk, ideal for laptop
+    tmpfs:
+      - /usr/share/elasticsearch/data:size=1G,uid=1000,gid=1000,mode=0755
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
 
   es2:
     container_name: es2
@@ -28,10 +48,29 @@ services:
       - action.destructive_requires_name=false
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      # --- HOTSPOTTING TRAINING: intentionally smaller than es (750M vs 1G) ---
+      # uneven capacity makes shard-balance hotspotting trivial to trigger:
+      # es2 hits high/flood_stage first -> shards pile on es -> hot node
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=500mb
+      - cluster.routing.allocation.disk.watermark.high=300mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=150mb
+      - cluster.routing.allocation.disk.watermark.flood_stage.frozen=150mb
+      - cluster.info.update.interval=1s
     ports:
       - "9201:9200"
     networks:
       - docker-network
+    # 750M tmpfs = visibly less headroom than es, forces imbalance
+    tmpfs:
+      - /usr/share/elasticsearch/data:size=750M,uid=1000,gid=1000,mode=0755
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
 
   kibana:
     container_name: kibana
