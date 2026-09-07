@@ -59,17 +59,14 @@ h1 { font-size: 20px; margin: 8px 0; }
 .node-stats b { color: var(--text); }
 .share { height: 8px; background: #0b1116; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
 .share > div { height: 100%; background: linear-gradient(90deg, #79c0ff, #f778ba); }
-.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px; }
+.tiles { display: flex; flex-wrap: wrap; gap: 3px; }
 .tile {
-  border-radius: 8px; padding: 6px 8px; font-size: 12px;
-  border: 1px solid rgba(0,0,0,.35); color: #101418;
-  min-height: 64px; display: flex; flex-direction: column; justify-content: space-between;
-  overflow: hidden; word-break: break-all;
+  width: 16px; height: 16px; padding: 0;
+  border-radius: 3px; border: 1px solid rgba(0,0,0,.4);
+  cursor: default; flex: none;
 }
-.tile .idx { font-weight: 700; }
-.tile .meta { opacity: .85; }
-.tile.p { outline: 2px solid rgba(0,0,0,.55); }
-.tile.r { outline: 1px dashed rgba(0,0,0,.5); }
+.tile.p { border-radius: 3px; }
+.tile.r { border-radius: 50%; }
 .tile.relocating, .tile.INITIALIZING {
   background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.35) 0 6px, transparent 6px 12px) !important;
 }
@@ -78,5 +75,15 @@ h1 { font-size: 20px; margin: 8px 0; }
   border: 1px solid var(--border); color: var(--muted);
 }
 .empty { color: var(--muted); font-size: 13px; padding: 12px 4px; }
+.tooltip {
+  position: fixed; z-index: 50; max-width: 320px;
+  background: #0b1116; border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 10px; font-size: 12px; pointer-events: none;
+  box-shadow: 0 6px 24px rgba(0,0,0,.5);
+}
+.tooltip .tt-size { font-size: 15px; font-weight: 700; }
+.tooltip .tt-idx { font-weight: 700; word-break: break-all; }
+.tooltip .tt-row { color: var(--muted); }
+.tooltip .tt-row b { color: var(--text); font-weight: 600; }
 footer { max-width: 1400px; margin: 20px auto 0; }
 code { background: #0b1116; padding: 1px 5px; border-radius: 4px; }

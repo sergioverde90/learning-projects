@@ -34,13 +34,15 @@
       <span class="muted">light blue = tiny → red = oversized (≥ red-at)</span>
       <span id="scale" class="muted"></span>
       <span class="spacer"></span>
-      <span class="badge p">p primary</span>
-      <span class="badge r">r replica</span>
+      <span class="badge p">■ primary</span>
+      <span class="badge r">● replica</span>
     </div>
     <div id="error" class="error" hidden></div>
   </header>
 
   <main id="nodes" class="nodes"></main>
+
+  <div id="tooltip" class="tooltip" hidden></div>
 
   <footer class="muted">
     Sources: <code>_cat/nodes?format=json</code> · <code>_cat/shards?format=json</code> ·

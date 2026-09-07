@@ -108,6 +108,7 @@ async function load() {
 }
 
 function render(nodes, shards, indices, health) {
+  hideTooltip();
   // health pill
   const pill = el("health");
   const status = health && health.status ? health.status : "unknown";
@@ -208,12 +209,7 @@ function nodeCard(name, info, list, total, maxTotal, absMax, isUnassigned = fals
     const t = document.createElement("div");
     t.className = `tile ${s.prirep === "p" ? "p" : "r"} ${s.state}`;
     t.style.background = colorFor(normAbs(bytes, absMax));
-    t.title = `${s.index} [shard ${s.shard}] ${s.prirep === "p" ? "primary" : "replica"}\n` +
-      `state=${s.state} docs=${s.docs} store=${s.store || "?"} (${bytes} B)\nnode=${s.node || "UNASSIGNED"}` +
-      (s["unassigned.reason"] ? `\nreason=${s["unassigned.reason"]}` : "");
-    t.innerHTML = `<span class="idx">${escapeHtml(s.index)}</span>` +
-      `<span class="meta">s${escapeHtml(String(s.shard))} · ${s.prirep} · ${escapeHtml(String(s.store || "?"))}</span>` +
-      `<span class="meta">${escapeHtml(String(s.docs))} docs · ${escapeHtml(String(s.state))}</span>`;
+    t._shard = { ...s, bytes };
     tiles.appendChild(t);
   }
   card.appendChild(tiles);
@@ -223,6 +219,42 @@ function nodeCard(name, info, list, total, maxTotal, absMax, isUnassigned = fals
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
+
+// Custom hover card -----------------------------------------------------------
+// Single delegated listener (cheap even with thousands of tiles): shows a
+// styled card next to the cursor with the shard's details.
+function showTooltip(shard, x, y) {
+  const tip = document.getElementById("tooltip");
+  const reason = shard["unassigned.reason"];
+  tip.innerHTML =
+    `<div class="tt-size">${escapeHtml(formatBytes(shard.bytes))}</div>` +
+    `<div class="tt-idx">${escapeHtml(shard.index)} [shard ${escapeHtml(String(shard.shard))}]</div>` +
+    `<div class="tt-row">${shard.prirep === "p" ? "primary" : "replica"} · ` +
+    `<b>${escapeHtml(String(shard.state))}</b> · ${escapeHtml(String(shard.docs))} docs</div>` +
+    `<div class="tt-row">store: <b>${escapeHtml(String(shard.store || "?"))}</b> (${shard.bytes} B)</div>` +
+    `<div class="tt-row">node: <b>${escapeHtml(shard.node || "UNASSIGNED")}</b></div>` +
+    (reason ? `<div class="tt-row">reason: <b>${escapeHtml(reason)}</b></div>` : "");
+  tip.hidden = false;
+  // position near cursor, clamped to viewport
+  const pad = 14;
+  const r = tip.getBoundingClientRect();
+  let left = x + pad, top = y + pad;
+  if (left + r.width > window.innerWidth - 8) left = x - r.width - pad;
+  if (top + r.height > window.innerHeight - 8) top = y - r.height - pad;
+  tip.style.left = `${Math.max(8, left)}px`;
+  tip.style.top = `${Math.max(8, top)}px`;
+}
+
+function hideTooltip() {
+  document.getElementById("tooltip").hidden = true;
+}
+
+document.getElementById("nodes").addEventListener("mousemove", (e) => {
+  const tile = e.target.closest ? e.target.closest(".tile") : null;
+  if (tile && tile._shard) showTooltip(tile._shard, e.clientX, e.clientY);
+  else hideTooltip();
+});
+document.getElementById("nodes").addEventListener("mouseleave", hideTooltip);
 
 function armRefresh() {
   if (timer) { clearInterval(timer); timer = null; }
